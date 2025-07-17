@@ -1,0 +1,10 @@
+version: 0.0
+Resources:
+  - myApplication:
+      Type: AWS::EKS::Application
+      Properties:
+        TaskDefinition:
+          Files:
+            - deployment.yaml
+            - service.yaml
+        Name: brain-tasks-app
