@@ -2,23 +2,25 @@ version: 0.2
 
 env:
   variables:
-    ImageName: simple-docker-service-12eb5c84555f
+    ImageName: "brain-tasks-app"
 
 phases:
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 719737572889.dkr.ecr.us-east-1.amazonaws.com
-
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t $ImageName -f ./Dockerfile .
-
+      - docker build -t $ImageName .
   post_build:
     commands:
       - echo Build completed on `date`
       - docker tag $ImageName:latest 719737572889.dkr.ecr.us-east-1.amazonaws.com/$ImageName:latest
       - docker push 719737572889.dkr.ecr.us-east-1.amazonaws.com/$ImageName:latest
+
+artifacts:
+  files:
+    - '**/*'
 
