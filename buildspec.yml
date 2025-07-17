@@ -4,32 +4,24 @@ phases:
   install:
     runtime-versions:
       docker: 20
-    commands:
-      - echo Installing dependencies...
-
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 719737572889.dkr.ecr.us-east-1.amazonaws.com)
       - REPOSITORY_URI=719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app
-      - IMAGE_TAG=latest
-
   build:
     commands:
-      - echo Building the Docker image...
+      - echo Building Docker image...
       - docker build -t brain-tasks-app .
-      - docker tag brain-tasks-app:latest $REPOSITORY_URI:$IMAGE_TAG
-
+      - docker tag brain-tasks-app:latest $REPOSITORY_URI:latest
   post_build:
     commands:
-      - echo Pushing the Docker image to ECR...
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo Writing image definitions...
-      - printf '[{"name":"brain-tasks-app","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
-
+      - echo Pushing Docker image...
+      - docker push $REPOSITORY_URI:latest
+      - echo Build and Push complete!
 artifacts:
   files:
     - appspec.yml
     - deployment.yaml
     - service.yaml
-    - imagedefinitions.json
+
