@@ -1,14 +1,25 @@
-# Stage 1: Build the app using public.ecr.aws image
-FROM public.ecr.aws/docker/library/node:18 AS build
+# Stage 1: Build React App
+FROM node:18-alpine AS build
+
 WORKDIR /app
-COPY package*.json ./
+
+COPY package.json package-lock.json ./
+
 RUN npm install
+
 COPY . .
+
+# Set executable permissions just in case
+RUN chmod +x node_modules/.bin/react-scripts
+
 RUN npm run build
 
-# Stage 2: Serve with nginx from ECR
-FROM public.ecr.aws/docker/library/nginx:alpine
+# Stage 2: Serve with nginx
+FROM nginx:alpine
+
 COPY --from=build /app/build /usr/share/nginx/html
+
 EXPOSE 80
+
 CMD ["nginx", "-g", "daemon off;"]
 
