@@ -5,26 +5,22 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws --version
-      - $(aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 719737572889.dkr.ecr.us-east-1.amazonaws.com)
-      - REPOSITORY_URI=719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app
-      - IMAGE_TAG=latest
-      - echo REPOSITORY_URI=$REPOSITORY_URI
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 719737572889.dkr.ecr.us-east-1.amazonaws.com
 
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t $REPOSITORY_URI:$IMAGE_TAG -f Dockerfile .
+      - docker build -t brain-tasks-app .
+      - docker tag brain-tasks-app:latest 719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app:latest
 
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo Writing image definitions...
-      - printf '[{"name":"brain-tasks-app","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - docker push 719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app:latest
 
 artifacts:
   files:
-    - imagedefinitions.json
+    - '**/*'
 
