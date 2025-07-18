@@ -5,7 +5,7 @@ metadata:
   namespace: kube-system
 data:
   mapRoles: |
-    - rolearn: arn:aws:iam::719737572889:role/YOUR-CODEBUILD-ROLE-NAME
+    - rolearn: arn:aws:iam::719737572889:role/codebuild-brain-tasks-service-role
       username: codebuild
       groups:
         - system:masters
