@@ -6,6 +6,17 @@ env:
     DOCKERHUB_PASSWORD: dockerhub/credentials:DOCKERHUB_PASSWORD
 
 phases:
+  install:
+    runtime-versions:
+      docker: 18
+    commands:
+      - echo Installing kubectl...
+      - curl -o kubectl https://s3.us-west-2.amazonaws.com/amazon-eks/1.28.1/2023-10-19/bin/linux/amd64/kubectl
+      - chmod +x ./kubectl
+      - mv ./kubectl /usr/local/bin/
+      - echo Configuring kubeconfig for EKS...
+      - aws eks update-kubeconfig --region us-east-1 --name brain-tasks-cluster
+
   pre_build:
     commands:
       - echo Logging in to DockerHub...
@@ -17,19 +28,23 @@ phases:
 
   build:
     commands:
-      - echo Building the Docker image...
+      - echo Building Docker image...
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
       - docker tag $REPOSITORY_URI:$IMAGE_TAG $REPOSITORY_URI:latest
 
   post_build:
     commands:
-      - echo Pushing the Docker image to ECR...
+      - echo Pushing Docker image to ECR...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - docker push $REPOSITORY_URI:latest
-      - echo Writing imagedefinitions.json for deployment...
-      - printf '[{"name":"brain-tasks-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - echo Replacing image placeholder in deployment.yaml with actual image URI...
+      - sed -i "s|<IMAGE_PLACEHOLDER>|$REPOSITORY_URI:$IMAGE_TAG|g" deployment.yaml
+      - echo Applying Kubernetes manifests to EKS...
+      - kubectl apply -f deployment.yaml
+      - kubectl apply -f service.yaml
 
 artifacts:
   files:
-    - imagedefinitions.json
+    - deployment.yaml
+    - service.yaml
 
