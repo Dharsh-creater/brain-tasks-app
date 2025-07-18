@@ -1,36 +1,35 @@
 version: 0.2
 
-phases:
-  install:
-    commands:
-      - echo "Installing jq..."
-      - yum install -y jq
+env:
+  secrets-manager:
+    DOCKERHUB_USERNAME: dockerhub/credentials:DOCKERHUB_USERNAME
+    DOCKERHUB_PASSWORD: dockerhub/credentials:DOCKERHUB_PASSWORD
 
+phases:
   pre_build:
     commands:
-      - echo "Logging in to Amazon ECR..."
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 719737572889.dkr.ecr.us-east-1.amazonaws.com
-
-      - echo "Retrieving Docker Hub credentials from Secrets Manager..."
-      - SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id dockerhub/credentials --region us-east-1 --query SecretString --output text)
-      - DOCKERHUB_USERNAME=$(echo $SECRET_JSON | jq -r '.DOCKERHUB_USERNAME')
-      - DOCKERHUB_PASSWORD=$(echo $SECRET_JSON | jq -r '.DOCKERHUB_PASSWORD')
-
-      - echo "Logging in to Docker Hub..."
-      - echo "$DOCKERHUB_PASSWORD" | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+      - echo Logging in to DockerHub...
+      - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      - REPOSITORY_URI=719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $REPOSITORY_URI
 
   build:
     commands:
-      - echo "Building Docker image..."
-      - docker build -t brain-tasks-app .
-      - docker tag brain-tasks-app:latest 719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app:latest
-      - docker tag brain-tasks-app:latest $DOCKERHUB_USERNAME/brain-tasks-app:latest
+      - echo Building the Docker image...
+      - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
+      - docker tag $REPOSITORY_URI:$IMAGE_TAG $REPOSITORY_URI:latest
 
   post_build:
     commands:
-      - echo "Pushing to Amazon ECR..."
-      - docker push 719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app:latest
+      - echo Pushing the Docker image...
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - docker push $REPOSITORY_URI:latest
+      - echo Writing image definitions...
+      - printf '[{"name":"brain-tasks-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
 
-      - echo "Pushing to Docker Hub..."
-      - docker push $DOCKERHUB_USERNAME/brain-tasks-app:latest
+artifacts:
+  files: 
+    - imagedefinitions.json
 
