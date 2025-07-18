@@ -5,6 +5,8 @@ phases:
     commands:
       - echo Logging in to Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 719737572889.dkr.ecr.us-east-1.amazonaws.com
+      - echo Logging in to Docker Hub...
+      - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
 
   build:
     commands:
@@ -16,8 +18,4 @@ phases:
     commands:
       - echo Build completed on `date`
       - docker push 719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app:latest
-
-artifacts:
-  files:
-    - '**/*'
 
