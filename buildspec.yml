@@ -13,7 +13,7 @@ phases:
       - chmod +x ./kubectl
       - mv ./kubectl /usr/local/bin/
       - echo Configuring kubeconfig for EKS...
-      - aws eks update-kubeconfig --region us-east-1 --name brain-tasks-cluster
+      - aws eks update-kubeconfig --region us-east-1 --name extravagant-metal-ant
 
   pre_build:
     commands:
