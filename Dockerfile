@@ -10,6 +10,8 @@ COPY . .
 
 RUN npm run build
 
+RUN chmod +x scripts/deploy.sh
+
 # Stage 2: Serve with nginx
 FROM nginx:alpine
 
