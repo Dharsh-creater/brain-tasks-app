@@ -1,32 +1,33 @@
 version: 0.2
 
 env:
-  secrets-manager:
-    DOCKERHUB_USERNAME: dockerhub/credentials:DOCKERHUB_USERNAME
-    DOCKERHUB_PASSWORD: dockerhub/credentials:DOCKERHUB_PASSWORD
+  variables:
+    REGION: us-east-1
+    CLUSTER_NAME: extravagant-metal-ant
+    REPOSITORY_URI: 719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app
 
 phases:
   install:
     commands:
-      - echo Installing kubectl using official Kubernetes install script...
-      - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+      - echo Installing kubectl...
+      - curl -LO "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
       - chmod +x kubectl
       - mv kubectl /usr/local/bin/
-      - echo Verifying kubectl version...
       - kubectl version --client
-      - echo Configuring kubeconfig for EKS...
-      - aws eks update-kubeconfig --region us-east-1 --name extravagant-metal-ant
 
   pre_build:
     commands:
-      - echo Logging in to Amazon EKS...
-      - aws eks update-kubeconfig --name extravagant-metal-ant --region us-east-1
+      - echo Updating kubeconfig for EKS...
+      - aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
+
       - echo Logging in to DockerHub...
       - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
       - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 719737572889.dkr.ecr.us-east-1.amazonaws.com
+      - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
+
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - REPOSITORY_URI=719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app
+      - echo "IMAGE_TAG=$IMAGE_TAG"
 
   build:
     commands:
@@ -36,12 +37,14 @@ phases:
 
   post_build:
     commands:
-      - echo Pushing Docker image to ECR...
+      - echo Pushing Docker images to ECR...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - docker push $REPOSITORY_URI:latest
-      - echo Replacing image placeholder in deployment.yaml with actual image URI...
+
+      - echo Replacing image in deployment.yaml...
       - sed -i "s|<IMAGE_PLACEHOLDER>|$REPOSITORY_URI:$IMAGE_TAG|g" deployment.yaml
-      - echo Applying Kubernetes manifests to EKS...
+
+      - echo Deploying to EKS...
       - kubectl apply -f deployment.yaml
       - kubectl apply -f service.yaml
 

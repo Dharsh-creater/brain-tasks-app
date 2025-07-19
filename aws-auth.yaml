@@ -11,8 +11,8 @@ data:
       groups:
         - system:masters
 
-    # EC2 NodeInstanceRole for joining EKS worker nodes
-    - rolearn: arn:aws:iam::719737572889:role/eksctl-your-nodegroup-role-name
+    # EC2 NodeInstanceRole (EKS worker nodes)
+    - rolearn: arn:aws:iam::719737572889:role/AmazonEKSAutoNodeRole
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: brain-tasks-container
-          image: <IMAGE_PLACEHOLDER>  # Will be replaced in buildspec.yml with ECR image
+          image: <IMAGE_PLACEHOLDER>  # Replaced in buildspec
           ports:
             - containerPort: 80
           resources:
@@ -26,3 +26,4 @@ spec:
             requests:
               memory: "128Mi"
               cpu: "100m"
+
