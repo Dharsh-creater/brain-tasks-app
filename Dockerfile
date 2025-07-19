@@ -8,9 +8,6 @@ RUN npm install
 
 COPY . .
 
-# ✅ Add execute permission for react-scripts
-RUN chmod +x node_modules/.bin/react-scripts
-
 RUN npm run build
 
 # Stage 2: Serve with nginx

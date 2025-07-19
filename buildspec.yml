@@ -1,11 +1,5 @@
 version: 0.2
 
-env:
-  variables:
-    REPOSITORY_URI: 719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app
-    REGION: us-east-1
-    CLUSTER_NAME: brain-tasks-cluster
-
 phases:
   install:
     commands:
@@ -40,9 +34,6 @@ phases:
       - echo Pushing Docker images to ECR...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - docker push $REPOSITORY_URI:latest
-
-      - echo Updating kubeconfig...
-      - aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
 
       - echo Replacing image in deployment.yaml...
       - sed -i "s|<IMAGE_PLACEHOLDER>|$REPOSITORY_URI:$IMAGE_TAG|g" deployment.yaml
