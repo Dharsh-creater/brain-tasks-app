@@ -6,6 +6,6 @@ metadata:
 data:
   mapRoles: |
     - rolearn: arn:aws:iam::719737572889:role/codebuild-brain-tasks-service-role
-      username: codebuild
+      username: codebuild-user
       groups:
         - system:masters
