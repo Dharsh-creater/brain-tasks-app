@@ -6,8 +6,8 @@ metadata:
 data:
   mapRoles: |
     # CodeBuild role for deploying to EKS
-    - rolearn: arn:aws:iam::719737572889:user/eks-deployer
-      username: eks-deployer
+    - rolearn: arn:aws:iam::719737572889:role/codebuild-deploy-to-eks-service-role
+      username: codebuild-deployer
       groups:
         - system:masters
 
