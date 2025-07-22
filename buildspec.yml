@@ -19,9 +19,9 @@ phases:
       - EKS_CLUSTER_NAME="brain-tasks-cluster"
       - AWS_REGION="us-east-1"
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
-      - echo "Verifying AWS Caller Identity..." # New debug command
-      - aws sts get-caller-identity # New debug command - This will show the assumed role
-      - echo "Caller Identity Verified. Applying Kubernetes deployment and service..."
+      - echo "Verifying AWS Caller Identity..." # This line (and the next) are new
+      - aws sts get-caller-identity            # This line (and the previous) are new
+      - echo "Caller Identity Verified. Applying Kubernetes deployment and service..." # This line should exist, moved down
 
   build:
     commands:
