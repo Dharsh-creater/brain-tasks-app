@@ -1,4 +1,5 @@
 version: 0.2
+
 phases:
   install:
     commands:
@@ -7,24 +8,33 @@ phases:
       - chmod +x ./kubectl
       - mv ./kubectl /usr/local/bin/kubectl
       # Install aws-iam-authenticator
-      - curl -LO "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.6.11/aws-iam-authenticator_0.6.11_linux_amd64" # Check for latest stable version
+      - curl -LO "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.6.11/aws-iam-authenticator_0.6.11_linux_amd64"
       - chmod +x ./aws-iam-authenticator_0.6.11_linux_amd64
       - mv ./aws-iam-authenticator_0.6.11_linux_amd64 /usr/local/bin/aws-iam-authenticator
-      - aws --version # Verify AWS CLI is installed (usually it is)
+      - aws --version # Verify AWS CLI is installed
+
   pre_build:
     commands:
       - echo "Updating kubeconfig for EKS cluster..."
       - EKS_CLUSTER_NAME="brain-tasks-cluster"
-      - AWS_REGION="us-east-1" # REPLACE WITH YOUR AWS REGION (e.g., ap-south-1)
+      - AWS_REGION="us-east-1"
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+      - echo "Verifying AWS Caller Identity..." # New debug command
+      - aws sts get-caller-identity # New debug command - This will show the assumed role
+      - echo "Caller Identity Verified. Applying Kubernetes deployment and service..."
+
   build:
     commands:
       - echo "Applying Kubernetes deployment and service..."
       - kubectl apply -f kubernetes/deployment.yaml
-      - kubectl apply -f kubernetes/service.yaml
+
   post_build:
     commands:
       - echo "Deployment complete. Waiting for LoadBalancer to be provisioned (optional)..."
-      - sleep 60 # Give some time for the LoadBalancer to be created
+      - sleep 60
       - kubectl get service brain-tasks-app-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
-      - echo "" # Add a newline for cleaner output
+      - echo "Application URL: http://$(kubectl get service brain-tasks-app-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+
+artifacts:
+  files:
+    - '**/*'
