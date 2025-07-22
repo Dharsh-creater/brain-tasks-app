@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: brain-tasks-app-deployment # Changed name for clarity
+  labels:
+    app: brain-tasks-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: brain-tasks-app
+  template:
+    metadata:
+      labels:
+        app: brain-tasks-app
+    spec:
+      containers:
+        - name: brain-tasks-app
+          image: 719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app:latest # <<< REPLACE with your actual ECR URI
+          ports:
+            - containerPort: 80
