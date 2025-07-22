@@ -14,17 +14,13 @@ phases:
       - aws --version # Verify AWS CLI is installed
 
   pre_build:
-    commands:
+    commands: # <--- FOCUS HERE: Ensure there's a colon and correct indentation
       - echo "Updating kubeconfig for EKS cluster..."
       - EKS_CLUSTER_NAME="brain-tasks-cluster"
       - AWS_REGION="us-east-1"
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
       - echo "Verifying AWS Caller Identity..."
-<<<<<<< HEAD
-      - aws sts get-caller-identity # This line MUST be present and correctly indented
-=======
       - aws sts get-caller-identity
->>>>>>> 90a5863d5374b7be86617e3f9725304e2744ad4d
       - echo "Caller Identity Verified. Applying Kubernetes deployment and service..."
 
   build:
@@ -36,9 +32,8 @@ phases:
     commands:
       - echo "Deployment complete. Waiting for LoadBalancer to be provisioned (optional)..."
       - sleep 60
-      - export APP_HOSTNAME=$(kubectl get service brain-tasks-app-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}') || true # Get hostname, handle error
-      - echo "Application URL (if provisioned): http://$APP_HOSTNAME" # Simplified echo
-      # The original line: - echo "Application URL: http://$(kubectl get service brain-tasks-app-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+      - export APP_HOSTNAME=$(kubectl get service brain-tasks-app-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}') || true
+      - echo "Application URL (if provisioned): http://$APP_HOSTNAME"
 
 artifacts:
   files:
