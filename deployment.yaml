@@ -16,14 +16,14 @@ spec:
     spec:
       containers:
         - name: brain-tasks-container
-          image: <IMAGE_PLACEHOLDER>  # Replaced in buildspec
+          image: 719737572889.dkr.ecr.us-east-1.amazonaws.com/brain-tasks-app:latest  # Replaced in buildspec
           ports:
             - containerPort: 80
           resources:
             limits:
               memory: "256Mi"
-              cpu: "250m"
+              cpu: "500m"
             requests:
               memory: "128Mi"
-              cpu: "100m"
+              cpu: "250m"
 

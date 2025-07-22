@@ -1,0 +1,26 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: brain-tasks-cluster
+  region: us-east-1 # <<< Make sure this is us-east-1
+  version: "1.28" # Or choose a slightly newer stable version like "1.29" if available and you prefer. EKS supports a range of versions. You can check the latest supported stable versions in the EKS console or AWS docs. "1.28" is fine for now.
+
+vpc:
+  nat:
+    gateway: HighlyAvailable # This creates NAT gateways for your private subnets for outbound internet access
+
+managedNodeGroups:
+  - name: brain-tasks-nodegroup
+    instanceType: t3.medium # t3.medium is generally a good starting point for small apps.
+    desiredCapacity: 2 # Start with 2 worker nodes for redundancy
+    minSize: 1
+    maxSize: 3
+    volumeSize: 20 # GB, sufficient for a typical web app
+    labels: { role: brain-tasks-app }
+    tags:
+      nodegroup-type: frontend
+    iam:
+      withAddonPolicies:
+        imageBuilder: false # Unless you specifically plan to build images *within* the EKS cluster, this is usually not needed for a simple React app deployment. Let's set to false to keep permissions minimal for now.
+        autoScaler: true # Recommended if you plan to use Cluster Autoscaler later, which automatically adjusts the number of nodes.
