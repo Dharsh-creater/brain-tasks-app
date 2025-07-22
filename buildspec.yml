@@ -1,52 +1,32 @@
-version: 0.2
-
-phases:
-  install:
-    commands:
-      - echo Installing kubectl...
-      - curl -LO "https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-      - chmod +x kubectl
-      - mv kubectl /usr/local/bin/
-      - kubectl version --client
-
-  pre_build:
-    commands:
-      - echo Updating kubeconfig for EKS...
-      - aws eks update-kubeconfig --region $REGION --name $CLUSTER_NAME
-
-      - echo Logging in to DockerHub...
-      - echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-
-      - echo Logging in to Amazon ECR...
-      - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
-
-      - export IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - echo "IMAGE_TAG=$IMAGE_TAG"
-
-  build:
-    commands:
-      - echo Building Docker image...
-      - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
-      - docker tag $REPOSITORY_URI:$IMAGE_TAG $REPOSITORY_URI:latest
-
-  post_build:
-    commands:
-      - echo Pushing Docker images to ECR...
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - docker push $REPOSITORY_URI:latest
-
-      - echo Replacing image in deployment.yaml...
-      - sed -i "s|<IMAGE_PLACEHOLDER>|$REPOSITORY_URI:$IMAGE_TAG|g" deployment.yaml
-
-      - echo Verifying cluster connectivity...
-      - kubectl get nodes
-
-      - echo Deploying to EKS...
-      - kubectl apply -f deployment.yaml
-      - kubectl apply -f service.yaml
-
-artifacts:
-  files:
-    - deployment.yaml
-    - service.yaml
-
+ version: 0.2
+    phases:
+      install:
+        commands:
+          # Install kubectl
+          - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          - chmod +x ./kubectl
+          - mv ./kubectl /usr/local/bin/kubectl
+          # Install aws-iam-authenticator
+          - curl -LO "https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v0.6.11/aws-iam-authenticator_0.6.11_linux_amd64" # Check for latest stable version
+          - chmod +x ./aws-iam-authenticator_0.6.11_linux_amd64
+          - mv ./aws-iam-authenticator_0.6.11_linux_amd64 /usr/local/bin/aws-iam-authenticator
+          - aws --version # Verify AWS CLI is installed (usually it is)
+      pre_build:
+        commands:
+          - echo "Updating kubeconfig for EKS cluster..."
+          - EKS_CLUSTER_NAME="brain-tasks-cluster"
+          - AWS_REGION="us-east-1" # REPLACE WITH YOUR AWS REGION (e.g., ap-south-1)
+          - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+      build:
+        commands:
+          - echo "Applying Kubernetes deployment and service..."
+          # Assuming artifacts from previous CodeBuild stage (build_app) are available
+          # The kubernetes folder from your source repo will be available in the CodeBuild working directory.
+          - kubectl apply -f kubernetes/deployment.yaml
+          - kubectl apply -f kubernetes/service.yaml
+      post_build:
+        commands:
+          - echo "Deployment complete. Waiting for LoadBalancer to be provisioned (optional)..."
+          - sleep 60 # Give some time for the LoadBalancer to be created
+          - kubectl get service brain-tasks-app-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+          - echo "" # Add a newline for cleaner output
