@@ -20,7 +20,11 @@ phases:
       - AWS_REGION="us-east-1"
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
       - echo "Verifying AWS Caller Identity..."
+<<<<<<< HEAD
       - aws sts get-caller-identity # This line MUST be present and correctly indented
+=======
+      - aws sts get-caller-identity
+>>>>>>> 90a5863d5374b7be86617e3f9725304e2744ad4d
       - echo "Caller Identity Verified. Applying Kubernetes deployment and service..."
 
   build:
