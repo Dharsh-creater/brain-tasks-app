@@ -31,8 +31,8 @@ phases:
   post_build:
     commands:
       - echo "Deployment complete. Checking service status..."
-      - kubectl get service brain-tasks-app-service # Simplified this line for testing
-      - echo "End of post-build phase." # Simplified this line for testing
+      - kubectl get service brain-tasks-app-service
+      - echo "End of post-build phase."
 
 artifacts:
   files:
