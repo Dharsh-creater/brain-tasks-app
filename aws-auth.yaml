@@ -1,20 +1,21 @@
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: aws-auth
-  namespace: kube-system
 data:
   mapRoles: |
-    # CodeBuild role for deploying to EKS
-    - rolearn: arn:aws:iam::719737572889:role/codebuild-deploy-to-eks-service-role
-      username: codebuild-deployer
-      groups:
-        - system:masters
-
-    # EC2 NodeInstanceRole (EKS worker nodes)
-    - rolearn: arn:aws:iam::719737572889:role/AmazonEKSAutoNodeRole
+    - groups:
+      - system:bootstrappers
+      - system:nodes
+      # This 'rolearn' MUST be your EKS Node Instance Role ARN.
+      rolearn: <PASTE_YOUR_EKS_NODE_INSTANCE_ROLE_ARN_HERE> # <--- REPLACE THIS PLACEHOLDER
       username: system:node:{{EC2PrivateDNSName}}
-      groups:
-        - system:bootstrappers
-        - system:nodes
-
+    - groups:
+      - system:masters
+      # This 'rolearn' is for your CodeBuild deployment role.
+      rolearn: arn:aws:iam::719737572889:role/service-role/codebuild-Brain-Tasks07-service-role
+      username: codebuild-Brain-Tasks07-service-role
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2025-07-22T06:03:00Z" # Keep your existing timestamp
+  name: aws-auth
+  namespace: kube-system
+  resourceVersion: "58261" # Keep your existing resourceVersion
+  uid: e34d694a-c99b-47ca-bd4e-9f32553416d6 # Keep your existing UID
